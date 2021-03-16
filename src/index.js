@@ -18,7 +18,7 @@ function checksExistsUserAccount(request, response, next) {
     return response.status(400).json({ error: 'Invalid user!' });
   }
 
-  request.username = username;
+  request.user = findExistingUser;
 
   return next();
 }
@@ -45,16 +45,14 @@ app.post('/users', (request, response) => {
 });
 
 app.get('/todos', checksExistsUserAccount, (request, response) => {
-  const { username } = request;
-
-  const user = users.find(user => user.username === username);
+  const { user } = request;
 
   return response.status(200).json(user.todos);
 });
 
 app.post('/todos', checksExistsUserAccount, (request, response) => {
   const { title, deadline } = request.body;
-  const { username } = request;
+  const { user } = request;
 
   const todo = {
     id: uuidv4(),
@@ -64,19 +62,15 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
     created_at: new Date(),
   };
 
-  const findUser = users.find(user => user.username === username);
-
-  findUser.todos.push(todo);
+  user.todos.push(todo);
 
   return response.status(201).json(todo);
 });
 
 app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
-  const { username } = request;
+  const { user } = request;
   const { id } = request.params;
   const { title, deadline } = request.body;
-
-  const user = users.find(user => user.username === username);
 
   const todo = user.todos.find(td => td.id === id);
 
@@ -91,10 +85,8 @@ app.put('/todos/:id', checksExistsUserAccount, (request, response) => {
 });
 
 app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  const { username } = request;
+  const { user } = request;
   const { id } = request.params;
-
-  const user = users.find(user => user.username === username);
 
   const todo = user.todos.find(td => td.id === id);
 
@@ -108,11 +100,9 @@ app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
 });
 
 app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  const { username } = request;
+  const { user } = request;
   const { id } = request.params;
-
-  const user = users.find(user => user.username === username);
-
+  
   const todo = user.todos.find(td => td.id === id);
 
   if (!todo) {
